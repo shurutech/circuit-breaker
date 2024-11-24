@@ -1,4 +1,4 @@
-module circuit-breaker
+module github.com/shurutech/circuit-breaker
 
 go 1.22.6
 
