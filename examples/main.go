@@ -6,7 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/shurutech/circuit-breaker/v1/circuitbreaker"
+	"github.com/redis/go-redis/v9"
+	circuitbreaker "github.com/shurutech/circuit-breaker/v1"
 )
 
 func fallbackFunc(req *http.Request) *circuitbreaker.CircuitBreakerResponse {
@@ -22,6 +23,13 @@ func fallbackFunc(req *http.Request) *circuitbreaker.CircuitBreakerResponse {
 }
 
 func main() {
+	redisOptions := &redis.Options{
+		Addr:     "localhost:6379", // Redis server address
+		Password: "",               // No password set
+		DB:       0,                // Default DB
+	}
+	rdb := redis.NewClient(redisOptions)
+
 	customConfig := circuitbreaker.Config{
 		TimeoutInterval:     5 * time.Second, // Request timeout interval
 		MaxFailures:         3,               // Number of failures to open the circuit
@@ -35,7 +43,7 @@ func main() {
 		},
 	}
 
-	cb := circuitbreaker.NewCircuitBreaker(customConfig, "example")
+	cb := circuitbreaker.NewCircuitBreaker(customConfig, "example", rdb)
 	cb.SetFallbackFunc(fallbackFunc)
 
 	requestURL := "http://example.com"
