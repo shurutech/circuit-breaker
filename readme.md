@@ -94,7 +94,7 @@ E.g
 
 An example is added to the repository to demonstrate the usage of the package. Here is a description of the same
 
-[Code Link](https://github.com/paper-indonesia/pdk/blob/main/example/circuit-breaker/main.go)  
+[Code Link](https://github.com/shurutech/circuit-breaker/blob/main/examples/main.go)  
 <br/>
 
 ```golang
@@ -104,8 +104,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"pdk/go/circuitbreaker"
 	"time"
+
+	"github.com/redis/go-redis/v9"
+	circuitbreaker "github.com/shurutech/circuit-breaker/v1"
 )
 
 func fallbackFunc(req *http.Request) *circuitbreaker.CircuitBreakerResponse {
@@ -121,6 +123,13 @@ func fallbackFunc(req *http.Request) *circuitbreaker.CircuitBreakerResponse {
 }
 
 func main() {
+	redisOptions := &redis.Options{
+		Addr:     "localhost:6379", // Redis server address
+		Password: "",               // No password set
+		DB:       0,                // Default DB
+	}
+	rdb := redis.NewClient(redisOptions)
+
 	customConfig := circuitbreaker.Config{
 		TimeoutInterval:     5 * time.Second, // Request timeout interval
 		MaxFailures:         3,               // Number of failures to open the circuit
@@ -134,7 +143,7 @@ func main() {
 		},
 	}
 
-	cb := circuitbreaker.NewCircuitBreaker(customConfig, "example")
+	cb := circuitbreaker.NewCircuitBreaker(customConfig, "example", rdb)
 	cb.SetFallbackFunc(fallbackFunc)
 
 	requestURL := "http://example.com"
@@ -155,7 +164,6 @@ func main() {
 		fmt.Printf("Received response with status code: %d\n", response.HttpStatus)
 	}
 }
-
 ```
 
 🎉
